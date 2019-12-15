@@ -4,6 +4,8 @@ from argparse import ArgumentParser
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pss
+from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.Random import get_random_bytes
 
 
 class Colors:
@@ -67,6 +69,38 @@ class Pysecu(object):
                            public_key.export_key('PEM', passphrase).decode() + "\n")
         else:
             raise Exception("Wrong bits number: available bits number are 1024, 2048, 4096")
+
+    def encrypt(self, path_input, path_public_key, passphrase, path_output):
+        content = self.load_file(path_input)
+
+        public_key = RSA.import_key(self.load_file(path_public_key), passphrase)
+        session_key = get_random_bytes(16)
+
+        # Encrypt the session key with the public RSA key
+        cipher_rsa = PKCS1_OAEP.new(public_key)
+        enc_session_key = cipher_rsa.encrypt(session_key)
+
+        # Encrypt the data with the AES session key
+        cipher_aes = AES.new(session_key, AES.MODE_EAX)
+        ciphertext, tag = cipher_aes.encrypt_and_digest(content.encode())
+
+        with open(path_output, 'wb+') as f:
+            [f.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext)]
+
+    def decrypt(self, path_input, path_private_key, passphrase):
+        private_key = RSA.import_key(self.load_file(path_private_key), passphrase)
+
+        with open(path_input, 'rb') as f:
+            enc_session_key, nonce, tag, ciphertext = [f.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1)]
+
+        # Decrypt the session key with the private RSA key
+        cipher_rsa = PKCS1_OAEP.new(private_key)
+        session_key = cipher_rsa.decrypt(enc_session_key)
+
+        # Decrypt the data with the AES session key
+        cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
+        content = cipher_aes.decrypt_and_verify(ciphertext, tag)
+        print(content.decode())
 
     def sign(self, path_input, path_private_key, path_public_key, passphrase):
         content = self.load_file(path_input)
@@ -132,6 +166,15 @@ def main():
     argp.add_argument('-o', '--output', dest='output', type=str,
                       help='Save the output in a file')
 
+    argp.add_argument('-en', '--encrypt', dest='encrypt', action="store_true",
+                      help='Encrypt a file with RSA')
+
+    argp.add_argument('-de', '--decrypt', dest='decrypt', action="store_true",
+                      help='Decrypt a file with RSA')
+
+    argp.add_argument('-pkey', '--pkey', dest='pkey', type=str,
+                      help='Get either a public or private key')
+
     argp.add_argument('-s', '--sign', dest='sign', type=str,
                       help='Sign a file')
 
@@ -148,6 +191,10 @@ def main():
         if args.input:
             if args.sign:
                 pysecu.sign(args.input, args.sign, args.verify, args.passphrase)
+            elif args.encrypt:
+                pysecu.encrypt(args.input, args.pkey, args.passphrase, args.output)
+            elif args.decrypt:
+                pysecu.decrypt(args.input, args.pkey, args.passphrase)
             else:
                 pysecu.hash(args.input, args.output)
 
