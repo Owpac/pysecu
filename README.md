@@ -51,3 +51,8 @@ You can change the number of bits with -b option and add a passphrase with -p op
 ```
 $ python3 pysecu.py -i [/path/to/the/file.txt] -s [/path/to/the/mykey.priv] -v [/path/to/the/mykey.pub]
 ```
+
+If your keys had a passphrase, don't forget to add -p option :
+```
+$ python3 pysecu.py -i [/path/to/the/file.txt] -s [/path/to/the/mykey.priv] -v [/path/to/the/mykey.pub] -p [passphrase]
+```
