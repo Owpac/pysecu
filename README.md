@@ -1,4 +1,5 @@
 # Pysecu
+Small Python script for cryptography (like OpenSSL) based on [Pycryptodome](https://github.com/Legrandin/pycryptodome).
 
 # Installation
 
