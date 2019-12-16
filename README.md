@@ -37,17 +37,27 @@ $ python3 pysecu.py -i [/path/to/the/file.txt] -o [/path/to/the/output.txt]
 
 3- Generate private and public RSA keys:
 ```
-$ python3 pysecu.py -rsa -o [/path/to/the/file]
+$ python3 pysecu.py -rsa -o [/path/to/the/key]
 ```
 
-This command will generate file.pub and file.priv
+This command will generate key.pub and key.priv
 ```
-$ python3 pysecu.py -rsa -s {1024 | 2048 | 4096} -p [passphrase] -o [/path/to/the/file]
+$ python3 pysecu.py -rsa -s {1024 | 2048 | 4096} -p [passphrase] -o [/path/to/the/key]
 ```
 
 You can change the number of bits with -b option and add a passphrase with -p option.
 
-4- Sign a file and verify its signature:
+4- Encrypt a file using public key:
+```
+$ python3 pysecu.py -i [/path/to/the/file.txt] -pkey [/path/to/the/key.pub] -p [passphrase] -o [/path/to/the/file.bin]
+```
+
+5- Decrypt a file using private key:
+```
+$ python3 pysecu.py -i [/path/to/the/file.bin] -pkey [/path/to/the/key.priv] -p [passphrase] -o [/path/to/the/file.txt]
+```
+
+6- Sign a file and verify its signature:
 ```
 $ python3 pysecu.py -i [/path/to/the/file.txt] -s [/path/to/the/mykey.priv] -v [/path/to/the/mykey.pub]
 ```
