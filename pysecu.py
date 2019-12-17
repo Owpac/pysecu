@@ -77,7 +77,6 @@ class Pysecu(object):
         :param path_output: path of output file
         """
         # Set files name for private and public keys
-        dir_name = os.path.dirname(path_output)
         file_name, file_extension = os.path.splitext(path_output)
         public_key_name = file_name + ".pub"
         private_key_name = file_name + ".priv"
@@ -87,11 +86,9 @@ class Pysecu(object):
             private_key = RSA.generate(number_bits)
             public_key = private_key.publickey()
 
-            save_file(os.path.join(dir_name, private_key_name),
-                      private_key.export_key('PEM', passphrase).decode())
+            save_file(private_key_name, private_key.export_key('PEM', passphrase).decode())
 
-            save_file(os.path.join(dir_name, public_key_name),
-                      public_key.export_key('PEM', passphrase).decode())
+            save_file(public_key_name, public_key.export_key('PEM', passphrase).decode())
         else:
             raise Exception("Wrong bits number: available bits number are 1024, 2048, 4096")
 
@@ -117,11 +114,10 @@ class Pysecu(object):
         cipher_text, tag = cipher_aes.encrypt_and_digest(content.encode())
 
         # Set files name encrypted content
-        dir_name = os.path.dirname(path_output)
         file_name, file_extension = os.path.splitext(path_output)
 
         if path_output:
-            with open(os.path.join(dir_name, file_name + ".bin"), 'wb+') as f:
+            with open(file_name + ".bin", 'wb+') as f:
                 [f.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, cipher_text)]
         else:
             print([x for x in (enc_session_key, cipher_aes.nonce, tag, cipher_text)])
